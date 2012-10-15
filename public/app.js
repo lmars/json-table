@@ -48,7 +48,7 @@ DataColumnView = Backbone.View.extend({
     this.model.bind('change:visible', this.toggleVisible, this);
   },
   render: function() {
-    this.$el.html($('<th>').text(this.model.get('name')));
+    this.$el.text(this.model.get('name'));
     return this;
   },
   toggleVisible: function() {
