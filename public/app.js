@@ -56,10 +56,30 @@ DataColumnView = Backbone.View.extend({
   }
 });
 
+Button = new Backbone.Model({ visible: false });
+
+new (Backbone.View.extend({
+  tagName: 'button',
+  initialize: function() {
+    Button.bind('change:visible', this.toggleVisible, this);
+  },
+  render: function() {
+    this.$el.addClass('btn btn-primary').text('Show me some Data!');
+    return this;
+  },
+  toggleVisible: function() {
+    if(Button.get('visible'))
+      $('#data-fields').after(this.render().el);
+    else
+      this.remove();
+  }
+}));
+
 App = new (Backbone.View.extend({
   initialize: function() {
     DataTypeCollection.bind('reset', this.renderDataTypes, this);
     DataFieldCollection.bind('reset', this.renderDataFields, this);
+    DataFieldCollection.bind('change:visible', this.toggleButton, this);
     DataTypeCollection.fetch();
   },
   renderDataTypes: function(data_types) {
@@ -77,5 +97,8 @@ App = new (Backbone.View.extend({
 
       var column_view = new DataColumnView({ model: data_field });
     });
+  },
+  toggleButton: function() {
+    Button.set('visible', DataFieldCollection.where({ visible: true }).length > 0);
   }
 }));
