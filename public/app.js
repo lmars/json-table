@@ -13,7 +13,9 @@ DataTypeView = Backbone.View.extend({
     "click": "chooseDataType"
   },
   chooseDataType: function() {
-    $('table thead tr').empty();
+    App.resetView();
+    DataCollection.reset();
+    App.data_type = this.model;
     DataFieldCollection.fetch({ data: { data_type: this.model.get('name') } });
   }
 });
@@ -36,6 +38,7 @@ DataFieldView = Backbone.View.extend({
   },
   chooseField: function() {
     this.model.set('visible', this.$el.find('input').is(':checked'));
+    App.renderData();
   }
 });
 
@@ -56,31 +59,22 @@ DataColumnView = Backbone.View.extend({
   }
 });
 
-Button = new Backbone.Model({ visible: false });
-
-new (Backbone.View.extend({
-  tagName: 'button',
-  initialize: function() {
-    Button.bind('change:visible', this.toggleVisible, this);
-  },
-  render: function() {
-    this.$el.addClass('btn btn-primary').text('Show me some Data!');
-    return this;
-  },
-  toggleVisible: function() {
-    if(Button.get('visible'))
-      $('#data-fields').after(this.render().el);
-    else
-      this.remove();
-  }
+DataCollection = new (Backbone.Collection.extend({
+  url: "/data"
 }));
 
 App = new (Backbone.View.extend({
   initialize: function() {
     DataTypeCollection.bind('reset', this.renderDataTypes, this);
     DataFieldCollection.bind('reset', this.renderDataFields, this);
+    DataCollection.bind('reset', this.renderData, this);
     DataFieldCollection.bind('change:visible', this.toggleButton, this);
     DataTypeCollection.fetch();
+  },
+  resetView: function() {
+    $('table thead tr').empty();
+    $('table tbody').empty();
+    Button.set('visible', false);
   },
   renderDataTypes: function(data_types) {
     data_types.each(function(data_type) {
@@ -100,5 +94,50 @@ App = new (Backbone.View.extend({
   },
   toggleButton: function() {
     Button.set('visible', DataFieldCollection.where({ visible: true }).length > 0);
+  },
+  fetchData: function() {
+    console.log('fetching data');
+    DataCollection.fetch({ data: { data_type: App.data_type.get('name') } });
+  },
+  renderData: function() {
+    tbody = $('table tbody');
+    tbody.empty();
+
+    DataCollection.each(function(row) {
+      tr = $('<tr>');
+
+      DataFieldCollection.each(function(data_field) {
+        if(data_field.get('visible')) {
+          attribute = data_field.get('attribute');
+          tr.append($('<td>').text(row.get(attribute)));
+        }
+      });
+
+      tbody.append(tr);
+    });
+  }
+}));
+
+Button = new Backbone.Model({ visible: false });
+
+new (Backbone.View.extend({
+  tagName: 'button',
+  initialize: function() {
+    Button.bind('change:visible', this.toggleVisible, this);
+  },
+  render: function() {
+    this.$el.addClass('btn btn-primary').text('Show me some Data!');
+    return this;
+  },
+  events: {
+    click: App.fetchData
+  },
+  toggleVisible: function() {
+    $('#data-fields').after(this.render().el);
+
+    if(Button.get('visible'))
+      this.$el.show();
+    else
+      this.$el.hide();
   }
 }));

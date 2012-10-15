@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'active_support/core_ext'
+require 'faker'
 
 get '/' do
   erb :index
@@ -21,21 +22,52 @@ get '/data-fields' do
   case params['data_type']
   when 'Accounts'
     [
-      { :name => 'First Name' },
-      { :name => 'Last Name' },
-      { :name => 'Email Address' }
+      { :attribute => 'first_name',    :name => 'First Name' },
+      { :attribute => 'last_name',     :name => 'Last Name' },
+      { :attribute => 'email_address', :name => 'Email Address' }
     ].to_json
   when 'Reports'
     [
-      { :name => 'Name' },
-      { :name => 'Published Date' },
-      { :name => 'Featured?' }
+      { :attribute => 'name',         :name => 'Name' },
+      { :attribute => 'published_at', :name => 'Published At' },
+      { :attribute => 'featured',     :name => 'Featured?' }
     ].to_json
   when 'Blog Posts'
     [
-      { :name => 'Title' },
-      { :name => 'Published At' },
-      { :name => 'No. of views' }
+      { :attribute => 'title',        :name => 'Title' },
+      { :attribute => 'published_at', :name => 'Published At' },
+      { :attribute => 'no_of_views',  :name => 'No. of views' }
     ].to_json
+  end
+end
+
+get '/data' do
+  content_type :json
+
+  case params['data_type']
+  when 'Accounts'
+    50.times.map {
+      {
+        :first_name    => Faker::Name.first_name,
+        :last_name     => Faker::Name.last_name,
+        :email_address => Faker::Internet.email
+      }
+    }.to_json
+  when 'Reports'
+    50.times.map {
+      {
+        :name         => Faker::Lorem.sentence,
+        :published_at => (rand 365).days.ago,
+        :featured     => rand(5) != 0
+      }
+    }.to_json
+  when 'Blog Posts'
+    50.times.map {
+      {
+        :title        => Faker::Lorem.sentence,
+        :published_at => (rand 365).days.ago,
+        :no_of_views  => rand(10000)
+      }
+    }.to_json
   end
 end
