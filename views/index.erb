@@ -40,5 +40,26 @@
     <script type="text/template" id="data-field-template">
       <input type="checkbox" value="0"> <%%= name %>
     </script>
+
+    <script type="text/template" id="data-filter-template">
+      <div class="modal">
+        <div class="modal-header">
+          <button class="close">&times;</button>
+          <h3>Filter: <%%= name %></h3>
+        </div>
+
+        <div class="modal-body">
+          <h4>Order:</h4>
+          <div class="btn-group" data-toggle="buttons-radio">
+            <button class="btn">Asc</button>
+            <button class="btn">Desc</button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-primary apply">Apply</button>
+        </div>
+      </div>
+    </script>
   </body>
 </html>

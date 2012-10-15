@@ -2,3 +2,19 @@
   float: left;
   width: 200px;
 }
+
+table th {
+  cursor: pointer;
+}
+
+.modal-body h4 {
+  float: left;
+  width: 200px;
+  line-height: 30px;
+  margin-top: 0;
+}
+
+.modal-body .btn-group {
+  float: left;
+  width: 300px;
+}

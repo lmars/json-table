@@ -51,11 +51,17 @@ DataColumnView = Backbone.View.extend({
     this.$el.text(this.model.get('name'));
     return this;
   },
+  events: {
+    click: 'viewFilters'
+  },
   toggleVisible: function() {
     if(this.model.get('visible'))
       $('table thead tr').append(this.render().el);
     else
       this.remove();
+  },
+  viewFilters: function() {
+    (new DataFilterView({ model: this.model })).render();
   }
 });
 
@@ -63,8 +69,39 @@ DataCollection = new (Backbone.Collection.extend({
   url: "/data"
 }));
 
+DataFilterView = Backbone.View.extend({
+  template: function(attributes) {
+    return _.template($('#data-filter-template').html(), attributes);
+  },
+  render: function() {
+    $('body').append(this.$el.html(this.template(this.model.toJSON())));
+    this.$el.modal();
+    return this;
+  },
+  events: {
+    'click .close': 'close',
+    'click .apply': 'apply'
+  },
+  close: function() {
+    this.$el.modal('hide');
+    this.remove();
+  },
+  apply: function() {
+    order_selection = this.$el.find('.btn.active');
+
+    if(order_selection) {
+      App.filters.order = this.model.get('attribute') + ',' + order_selection.text();
+    }
+
+    App.fetchData();
+
+    this.close();
+  }
+});
+
 App = new (Backbone.View.extend({
   initialize: function() {
+    this.filters = {}
     DataTypeCollection.bind('reset', this.renderDataTypes, this);
     DataFieldCollection.bind('reset', this.renderDataFields, this);
     DataCollection.bind('reset', this.renderData, this);
@@ -96,8 +133,12 @@ App = new (Backbone.View.extend({
     Button.set('visible', DataFieldCollection.where({ visible: true }).length > 0);
   },
   fetchData: function() {
-    console.log('fetching data');
-    DataCollection.fetch({ data: { data_type: App.data_type.get('name') } });
+    DataCollection.fetch({
+      data: {
+        data_type: App.data_type.get('name'),
+        filters:   App.filters
+      }
+    });
   },
   renderData: function() {
     tbody = $('table tbody');
